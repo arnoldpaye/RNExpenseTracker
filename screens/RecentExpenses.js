@@ -17,7 +17,11 @@ function RecentExpenses() {
   });
 
   return (
-    <ExpensesOutput expenses={recentExpenses} expensesPeriod={"Last 7 days"} />
+    <ExpensesOutput
+      expenses={recentExpenses}
+      expensesPeriod={"Last 7 days"}
+      fallBackText={"No expenses found in the last 7 days"}
+    />
   );
 }
 export default RecentExpenses;

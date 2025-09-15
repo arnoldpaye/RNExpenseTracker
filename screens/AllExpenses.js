@@ -7,6 +7,12 @@ function AllExpenses() {
   const expensesCtx = useContext(ExpensesContext);
   const { expenses } = expensesCtx;
 
-  return <ExpensesOutput expenses={expenses} expensesPeriod={"Total"} />;
+  return (
+    <ExpensesOutput
+      expenses={expenses}
+      expensesPeriod={"Total"}
+      fallBackText={"No registered expenses found"}
+    />
+  );
 }
 export default AllExpenses;
