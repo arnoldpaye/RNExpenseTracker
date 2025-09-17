@@ -7,9 +7,11 @@ import { deleteExpense, storeExpense, updateExpense } from "../util/http";
 
 import { ExpensesContext } from "../store/expenses-context";
 import { GlobalStyles } from "../constants/styles";
+import ErrorOverlay from "../components/UI/ErrorOverlay";
 
 function ManageExpense({ route, navigation }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
   const expensesCtx = useContext(ExpensesContext);
 
   const { expenseId } = route.params || {};
@@ -25,10 +27,15 @@ function ManageExpense({ route, navigation }) {
   }, [navigation, isEditing]);
 
   async function deleteExpenseHandler() {
-    expensesCtx.deleteExpense(expenseId);
     setIsSubmitting(true);
-    await deleteExpense(expenseId);
-    navigation.goBack();
+    try {
+      await deleteExpense(expenseId);
+      expensesCtx.deleteExpense(expenseId);
+      navigation.goBack();
+    } catch (error) {
+      setError("Could not delete expense");
+      setIsSubmitting(false);
+    }
   }
 
   function cancelHandler() {
@@ -37,18 +44,40 @@ function ManageExpense({ route, navigation }) {
 
   async function confirmHandler(expenseData) {
     setIsSubmitting(true);
-    if (isEditing) {
-      expensesCtx.updateExpense(expenseId, expenseData);
-      await updateExpense(expenseId, expenseData);
-    } else {
-      const id = await storeExpense(expenseData);
-      expensesCtx.addExpense({ ...expenseData, id });
+    try {
+      if (isEditing) {
+        expensesCtx.updateExpense(expenseId, expenseData);
+        await updateExpense(expenseId, expenseData);
+      } else {
+        const id = await storeExpense(expenseData);
+        expensesCtx.addExpense({ ...expenseData, id });
+      }
+      navigation.goBack();
+    } catch (error) {
+      setError("Could not save expense");
+      setIsSubmitting(false);
     }
-    navigation.goBack();
   }
-  
+
+  function errorHandler() {
+    setError("");
+  }
+
+  if (error && !isSubmitting) {
+    return <ErrorOverlay message={error} onConfirm={errorHandler} />;
+  }
+
+  if (isEditing && !selectedExpense) {
+    return (
+      <ErrorOverlay message={"Expense not found"} onConfirm={cancelHandler} />
+    );
+  }
+
+  if (isEditing && isSubmitting) {
+  }
+
   if (isSubmitting) {
-    return <LoadingOverlay />
+    return <LoadingOverlay />;
   }
 
   return (
